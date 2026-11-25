@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Icons: the tab icon (favicon), the Home Screen icon (apple-touch-icon), and the app details for phones (manifest) -->
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Creatures">
+<title>How we made Creature Adventure</title>
+<style>
+  /* Same sunset colours as the game, so the two pages feel like one place */
+  :root { --ink: #1f1426; --plum: #3a1d4a; --ember: #ff6a2b; --glow: #ffc27a; --paper: #fff8f0; --soft: #6b5566; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font: 18px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { background: linear-gradient(180deg, var(--plum), var(--ember) 75%, var(--glow)); color: #fff;
+           padding: 56px 24px 64px; text-align: center; }
+  header h1 { margin: 0 0 8px; font-size: clamp(30px, 6vw, 48px); line-height: 1.1; }
+  header p { margin: 0; font-size: 19px; opacity: .95; }
+  main { max-width: 680px; margin: 0 auto; padding: 32px 24px 64px; }
+  h2 { margin: 44px 0 8px; font-size: 26px; color: var(--plum); }
+  blockquote { margin: 20px 0; padding: 12px 18px; border-left: 5px solid var(--ember);
+               background: #fff; border-radius: 0 10px 10px 0; font-size: 20px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 16px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #ecdccf; vertical-align: top; }
+  th { color: var(--plum); }
+  a { color: #c4410a; font-weight: 600; }
+  .play { display: inline-block; margin-top: 22px; padding: 14px 26px; border-radius: 30px; background: #fff;
+          color: var(--plum); text-decoration: none; font-weight: 800; font-size: 18px; }
+  .note { color: var(--soft); font-size: 16px; }
+  figure { margin: 24px 0; }
+  figure img { display: block; width: 100%; height: auto; border-radius: 14px; box-shadow: 0 6px 24px rgba(58,29,74,.18); }
+  figcaption { margin-top: 8px; color: var(--soft); font-size: 15px; }
+  code { font: 15px ui-monospace, Menlo, monospace; background: #f3e6da; padding: 1px 5px; border-radius: 5px; }
+  .icon { display: block; width: 120px; height: 120px; margin: 0 auto 18px; border-radius: 27px; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+  /* reading progress along the top, plus floating buttons once you've scrolled past the header */
+  #progress { position: fixed; top: 0; left: 0; height: 4px; width: 0; background: var(--ember); z-index: 10; }
+  #floaters { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); display: flex; gap: 8px;
+              opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity .2s, transform .2s; z-index: 10; }
+  #floaters.show { opacity: 1; transform: none; pointer-events: auto; }
+  #floaters a { display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 22px; text-decoration: none;
+                font: 800 16px system-ui, sans-serif; box-shadow: 0 4px 16px rgba(58,29,74,.3); }
+  #floaters .try { background: var(--ember); color: #fff; }
+  #floaters .up { background: #fff; color: var(--plum); }
+  .backtop { display: block; text-align: center; margin: 40px 0 0; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+  footer { text-align: center; padding: 24px; color: var(--soft); font-size: 15px; }
+</style>
+</head>
+<body>
+<div id="progress" aria-hidden="true"></div>
+<header id="top">
+  <img class="icon" src="icons/icon-512.png" alt="The Creature Adventure app icon: a smiling orange creature with a flame on its belly, above the letters CA">
+  <h1>How we made Creature Adventure</h1>
+  <p>A dad, a nine-year-old lead designer, and a lot of checkboxes.</p>
+  <a class="play" href="./">▶ Play the game</a>
+</header>
+<main>
+
+<h2>Where it started</h2>
+<p>This game started with a different project. I built myself a focus room – a Formula 1 pit wall with a timer, music, and a scratch pad – to help me sit down and get work done. I built it with Claude as a coding teacher, one small piece at a time, and wrote up how it went (<a id="articleLink" href="#">here's that write-up</a>, and here's the <a href="https://daynwj.github.io/pit-wall-focus-room/">focus room itself</a>).</p>
+<p>The biggest lesson from that build is the reason this game looks the way it does. The garage, the crew, and the car in the focus room are all drawn in code instead of painted images – so when I wanted to change something, I just asked for it in a conversation. That's what convinced me we could build a 2D game the same way, with every creature, rock, and volcano made out of shapes.</p>
+<p>Once it worked, the obvious next question came from my son: could we build one for HIM? We kicked around a few ideas, and the one that stuck was a game. I brought him a rough pitch: a creature that runs, jumps, collects things, and grows up along the way. Everything after that is mostly his.</p>
+
+<h2>How we designed it</h2>
+<p>Asking a nine-year-old open questions gets you a lot of very fast talking. So I built him an interview page with checkboxes – pick the feel, pick the creatures, pick the controls – and we recorded the conversation while he went through it. He could answer at his own speed, and every answer gave us something to talk about.</p>
+<p>A few of his calls that I never would have made:</p>
+<ul>
+  <li><strong>The name.</strong> I suggested a name with "Dash" in it. He turned it down because it "sounds like there's no evolving."</li>
+  <li><strong>No puddles.</strong> Water creatures would just walk through them, so what's the point?</li>
+  <li><strong>The first creature</strong> is round, with wings to glide, spikes to stay on the ground, and fins to bounce.</li>
+  <li><strong>The flame.</strong> My first flame mark on the creature's belly was shaped like a teardrop. He took one look and said it made the creature look like a Water type. He was right – flames point UP now. Then he noticed the new flame sat too close to the mouth, so the creatures got taller to give the mark room in the middle of the belly. Every type gets its own mark now (the teardrop went to Water).</li>
+  <li><strong>Real wings, and hands.</strong> The first wings were little triangles. He wanted bat wings, with the fingers and the scalloped edge, plus circle hands and circle feet – a bit more like the trainer, but still a blob.</li>
+  <li><strong>A world for every type.</strong> He picked them all: Fire runs through a volcano, Water along the ocean floor, Grass through a spring forest, Electric through a thunderstorm, Dragon through a cave full of treasure, and Steel over the mountains.</li>
+  <li><strong>A trainer who dresses for the weather.</strong> Scuba gear for the ocean, a firefighter's helmet at the volcano, a yellow rain jacket in the thunderstorm, a hard hat in the mountains, and a wizard hat with a light on top to see in the treasure cave. In the spring forest, the trainer gets to just be the trainer.</li>
+  <li><strong>Controls</strong> are tap to jump and double tap to double jump. Nothing else. He was firm on that, and it's held up every time we've tested a new idea against it.</li>
+</ul>
+
+<figure>
+  <img src="story/evolutions.jpg" alt="All six creatures at their three stages. Stage 1 is a small blob with bat wings, circle hands and feet, and a belly mark. Stage 2 is bigger, with little horns, a tail tipped with its mark, and bigger wings. Stage 3 is biggest, with long curved horns, a forehead gem, a ring around its belly mark, huge wings, and a soft glow.">
+  <figcaption>Six creatures, three stages each. Every Power Up makes them bigger and gives them something new – horns and a tail at stage 2, long horns, a forehead gem and a glow at stage 3 – plus a new move.</figcaption>
+</figure>
+<figure>
+  <img src="story/worlds.jpg" alt="Six screenshots of the game, one per world, each with the trainer in a different outfit: a firefighter at the volcano, scuba gear on the ocean floor, the usual cap in the spring forest, a yellow rain jacket in the thunderstorm, a wizard hat in the treasure cave, and a hard hat in the mountains.">
+  <figcaption>One world for each type, and an outfit for the trainer in each one.</figcaption>
+</figure>
+
+<h2>Where we disagreed</h2>
+<p>We didn't agree on everything (we're related, after all).</p>
+<p>The big one was time. The music tracks are about two and a half minutes long, so I wanted every level to last about two minutes. He hated it, and told me exactly why:</p>
+<blockquote>Every time there is minutes, it always rushes me.</blockquote>
+<p>He was right. So levels are now a set <em>distance</em> instead of a set time, with a progress bar and a flag at the finish. Under the hood it still works out to about two minutes, but he never sees a clock counting down.</p>
+<p>The other one: I said there would be no weapons in this game. Instead of arguing, he turned it into something better – creatures fill up an energy bar and use their OWN moves, and the rescued creatures hand you potions and gear for the boss.</p>
+
+<h2>How you play</h2>
+<figure>
+  <img src="story/menu.jpg" alt="The start screen: pick a creature from six buttons, give it a name, and choose Adventure or Zen. An open card explains Adventure mode and says which world and level you're on.">
+  <figcaption>Pick a creature, give it a name (or keep the type), and pick a mode. Tap the little "i" to find out what each mode is.</figcaption>
+</figure>
+<table>
+  <tr><th>Mode</th><th>What it is</th></tr>
+  <tr><td>Adventure</td><td>Three worlds, one for each stage. Each world has four levels and then a boss. Your progress saves on your device, so you can stop and pick up where you left off.</td></tr>
+  <tr><td>Zen</td><td>Relaxed, endless running with calm music – no way to lose. Just practise, and try to beat your best distance.</td></tr>
+</table>
+<p><strong>Levels.</strong> Each level is the same every time, so you can learn it. The boss's minions are carrying captured creatures in bubbles – land on a minion to pop the bubble and free its friend. That friend's home becomes your checkpoint. Miss one, and you head back to the last home to try again. A progress bar along the bottom shows the homes and the finish flag, with five dots for the world's levels (the last one is a little skull: that's the boss).</p>
+<figure>
+  <img src="story/rescue.jpg" alt="The Water creature running along the ocean floor in World 2. A grumpy little minion carries a captured creature in a bubble, and a progress bar along the bottom shows World 2, Level 1, the three homes, and the finish flag.">
+  <figcaption>A minion with a captured friend, coming up. Land on it!</figcaption>
+</figure>
+<p><strong>Gifts from rescued creatures.</strong> In levels 1 to 3, the last friend you save gives you something for the boss fight: a Health Potion, an Energy Potion, or a Cape that blocks one hit. In level 4, they give you the key to the boss's lair. Each item works once per boss battle – tap it when you need it.</p>
+<p><strong>The boss</strong> sends slow attacks high and low. Jump the low ones, run under the high ones. Grab glowing orbs to fill your energy bar, and when it's full, your creature uses its move on its own, aimed at the boss's glowing weak spot. Break all three weak spots and the boss gets dizzy and floats away, dropping a Power Up. Lose all your hearts, and the battle starts over – that's a chance to try again, not a loss.</p>
+<figure>
+  <img src="story/boss.jpg" alt="A boss battle in the treasure cave. The purple Dragon creature at stage 2 sends a glowing Gem Ball at the big grumpy boss's pink weak spot. The ground bar shows three items, three hearts, an energy bar, and World 2 Boss.">
+  <figcaption>"Gem Ball!" The boss's weak spot glows pink. The bar along the bottom holds your items, hearts, and energy.</figcaption>
+</figure>
+<p><strong>Power Up.</strong> Beat the boss, grab what it drops, and your creature Powers Up – bigger, with something new, and a new move. Then it's on to the next world. Beat all three bosses, and you've beaten the adventure.</p>
+<p><strong>Names.</strong> His idea: let players decide. Give your creature its own name, or just keep the type. Either way, it saves on your device.</p>
+<p class="note">This is the game as of November 2026. It will change (he has opinions).</p>
+
+<h2>How it's built</h2>
+<ul>
+  <li><strong>A few small files.</strong> No game engine and no downloads – just HTML, CSS, and JavaScript that runs in the browser, hosted for free on GitHub Pages. Each file has one job: <code>knobs.js</code> holds the numbers, colours and words, <code>creatures.js</code> draws the creatures, <code>trainer.js</code> dresses the trainer, <code>worlds.js</code> draws the six worlds, <code>adventure.js</code> runs the levels, <code>boss.js</code> runs the boss battles, and <code>game.js</code> ties it all together.</li>
+  <li><strong>Everything is drawn in code.</strong> The creatures, the six worlds, the trainer – all circles, triangles, and curves.</li>
+  <li><strong>Six creatures, one drawing.</strong> Every type uses the same drawing code. A short list in the knobs gives each one its colours, its belly mark, its world, and its three moves, so changing the Dragon's purple (or renaming a move) is a one-line edit.</li>
+  <li><strong>A "knobs" section</strong> at the top of the code holds the numbers he's allowed to change: speed, jump height, gravity, colours, what the trainer says. He changes a number, reloads, and watches the creature fly off the top of the screen.</li>
+  <li><strong>The code monitor.</strong> Tap "Code: on" in the game, and a screen in the sky shows the real code running. When you jump, the line that makes you jump lights up. When you rescue a friend or hit the boss, it jumps to that file and lights up that line. I added that one for both of us.</li>
+  <li><strong>The music</strong> is the same set of tracks from my focus room. Each world has its own, the boss has its own, and Zen gets the calmest one.</li>
+  <li><strong>Saved on your device only.</strong> Your progress, your names, your berries and your best distance stay in your own browser. There are no accounts and nothing gets sent anywhere.</li>
+</ul>
+<p>I'm learning to code alongside him, so we build in short sessions that each end with something that works. Claude explains the why before writing anything, and we decide together what goes in next – or, more often, he decides and I explain why it'll take more than one night.</p>
+
+<h2>Want to try it?</h2>
+<p>It's best on an iPad, turned sideways. Add it to your Home Screen so Safari doesn't clear your saved progress. If you've got a young designer at home, I highly recommend the checkbox interview approach. What would yours put in a game?</p>
+<p>- Dad (and the lead designer)</p>
+<a class="backtop" href="#top">↑ Back to top</a>
+
+</main>
+<div id="floaters">
+  <a class="try" href="./">▶ Try it</a>
+  <a class="up" href="#top" aria-label="Back to top">↑ Top</a>
+</div>
+<footer>Creatures and art are original, drawn in code. Music made with Lyria in the Gemini app.</footer>
+<script>
+  // Paste the link to the focus-room write-up here once, and the link in "Where it started" uses it.
+  const ARTICLE_URL = "https://daynwj.github.io/ai/focus-room/";
+  const a = document.getElementById("articleLink");
+  if (ARTICLE_URL) a.href = ARTICLE_URL; else a.removeAttribute("href");   // no dead link if it's blank
+
+  // The floating "Try it" and "Top" buttons appear once the header (with its own Play button) scrolls away.
+  const floaters = document.getElementById("floaters"), bar = document.getElementById("progress");
+  new IntersectionObserver(([e]) => floaters.classList.toggle("show", !e.isIntersecting)).observe(document.getElementById("top"));
+  // The bar along the top shows how far down the page you are.
+  const onScroll = () => { const max = document.documentElement.scrollHeight - innerHeight; bar.style.width = (max > 0 ? scrollY / max * 100 : 0) + "%"; };
+  addEventListener("scroll", onScroll, { passive: true }); onScroll();
+</script>
+</body>
+</html>

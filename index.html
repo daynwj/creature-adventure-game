@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Icons: the tab icon (favicon), the Home Screen icon (apple-touch-icon), and the app details for phones (manifest) -->
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Creatures">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#3a1d4a">
+<title>Creature Adventure</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="game" aria-label="Creature Adventure. Tap to jump, tap again in the air to double jump."></canvas>
+
+<!-- The menu: pick a creature, name it, pick a mode -->
+<div id="menu">
+  <div id="modeInfo" hidden></div>
+  <div id="modes">
+    <div class="mode" data-mode="adventure">
+      <button id="advBtn" class="modeBtn adv">Adventure</button>
+      <button class="info" data-mode="adventure" aria-label="What happens in Adventure mode?">i</button>
+    </div>
+    <div class="mode" data-mode="zen">
+      <button id="zenBtn" class="modeBtn zen">Zen</button>
+      <button class="info" data-mode="zen" aria-label="What happens in Zen mode?">i</button>
+    </div>
+    <button id="nameBtn" class="nameBtn">✏️ Name</button>
+  </div>
+  <div id="picker" role="group" aria-label="Choose your creature"></div>
+</div>
+<div id="namePanel" hidden role="dialog" aria-labelledby="nameLabel">
+  <label id="nameLabel" for="nameInput">Name your creature</label>
+  <input id="nameInput" maxlength="12" autocomplete="off" spellcheck="false">
+  <div class="row"><button id="nameSave">Save</button><button id="nameReset">Just use the type</button><button id="nameCancel">Cancel</button></div>
+</div>
+
+<button id="menuBtn" hidden>☰ Menu</button>
+<a id="storyLink" href="story.html">How we made this</a>
+<button id="musicBtn" aria-pressed="true">♪ Music: on</button>
+<button id="codeBtn" aria-pressed="true">Code: on</button>
+
+<!-- The game is split into small files, loaded in this order. Each one has one job. -->
+<script src="js/knobs.js"></script>     <!-- the numbers, colours and words to play with -->
+<script src="js/creatures.js"></script> <!-- how to draw a creature (all 3 stages), minions and homes -->
+<script src="js/trainer.js"></script>   <!-- the trainer's outfit for each world -->
+<script src="js/worlds.js"></script>    <!-- each type's world and its obstacles -->
+<script src="js/adventure.js"></script> <!-- levels, rescues, checkpoints -->
+<script src="js/boss.js"></script>      <!-- boss battles and Power Up -->
+<script src="js/game.js"></script>      <!-- everything that runs: menu, input, movement, sound, the loop -->
+</body>
+</html>
