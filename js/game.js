@@ -21,6 +21,8 @@ const load = (key, fallback) => { try { return localStorage.getItem("creatureAdv
 const save = (key, value) => { try { localStorage.setItem("creatureAdventure." + key, value); } catch (e) {} };
 let savedBerries = Number(load("berries", 0)) || 0;
 const FAST = /[?&]fast/.test(location.search);   // for testing: add ?fast to the address and levels are very short
+// Is there a mouse and keyboard? (A screen you can hover on with a fine pointer.) Then we show keyboard hints.
+const KEYBOARD = matchMedia("(hover: hover) and (pointer: fine)").matches;
 
 /* ===== 2. GAME STATE ===== */
 const P = { x: 150, y: GROUND, vy: 0, jumps: 0, stumble: 0, hurt: 0, t: 0 };   // the creature
@@ -151,6 +153,13 @@ const MODE_INFO = {
   adventure: () => { const pr = progressOf(cur());
     return "<b>Adventure</b>Run through 3 worlds. Each world has 4 levels and a boss. In every level, land on the minions to free 3 captured friends – their homes are your checkpoints. Beat the boss to Power Up " + nameOf(cur()) + "!" +
       "<em>" + (pr.done ? "Adventure complete! Play it again any time." : "You're on World " + pr.world + " · " + (pr.level === 5 ? "the Boss" : "Level " + pr.level) + ".") + "</em>"; },
+  how: () => "<b>How to play</b>" +
+    "<ul><li><strong>Jump:</strong> tap the screen" + (KEYBOARD ? ", or press Space or ↑" : "") + ". Tap again in the air to double jump.</li>" +
+    "<li><strong>Rescue friends:</strong> land on the grumpy minions to pop the bubbles. Each friend's home is a checkpoint. Miss one, and you go back to the last home.</li>" +
+    "<li><strong>Bumps</strong> just slow you down for a moment.</li>" +
+    "<li><strong>Bosses:</strong> jump the low attacks, run under the high ones. Grab glowing orbs – when your energy is full, your creature attacks on its own.</li>" +
+    "<li><strong>Items:</strong> in a boss battle, tap a potion or the cape on the ground bar" + (KEYBOARD ? " (or press 1, 2, 3)" : "") + ". Each works once per battle.</li>" +
+    "<li><strong>Your progress saves</strong> on this device, so you can stop any time.</li></ul>",
   zen: () => "<b>Zen</b>Run as long as you like, with calm music. Nothing can stop you – just practise jumping and collecting." +
     "<em>" + nameOf(cur()) + "'s best: " + (Number(load("zenBest." + cur().type, 0)) || 0) + " m</em>",
 };
@@ -160,6 +169,9 @@ document.querySelectorAll(".info").forEach(b => b.addEventListener("click", () =
   if (infoPinned && infoOpen === b.dataset.mode) { infoPinned = false; showInfo(""); }   // tap again: hide
   else { infoPinned = true; showInfo(b.dataset.mode); }                                 // tap: show
 }));
+$("howBtn").addEventListener("click", () => {                    // same card as the "i" buttons, with the controls
+  if (infoPinned && infoOpen === "how") { infoPinned = false; showInfo(""); } else { infoPinned = true; showInfo("how"); }
+});
 document.querySelectorAll(".mode").forEach(m => {                    // on a computer, hovering shows it too
   m.addEventListener("mouseenter", () => { if (!infoPinned) showInfo(m.dataset.mode); });
   m.addEventListener("mouseleave", () => { if (!infoPinned) showInfo(""); });
@@ -213,6 +225,7 @@ cv.addEventListener("pointerdown", e => { e.preventDefault(); tap(e); });
 addEventListener("keydown", e => {
   if (e.target.tagName === "INPUT") return;                          // typing a name, not jumping
   if (e.code === "Space" || e.code === "ArrowUp") { e.preventDefault(); tap(); }
+  else if (["Digit1", "Digit2", "Digit3"].includes(e.code)) useItem(Number(e.code.slice(-1)) - 1);   // boss items: keys 1, 2, 3
 });
 
 /* ===== 5. UPDATE: everything that moves, once per frame ===== */
@@ -333,6 +346,7 @@ function drawStart() {
   ctx.font = "800 44px system-ui, sans-serif"; ctx.fillText("Creature Adventure", W / 2, 84);
   ctx.font = "700 20px system-ui, sans-serif"; ctx.fillText("Pick a creature, then pick a mode", W / 2, 120);
   ctx.font = "600 15px system-ui, sans-serif"; ctx.fillText(nameOf(cur()) + " · " + cur().world + " · Stage " + STAGE, W / 2, 146);
+  if (KEYBOARD) { ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.fillText("On a computer: Space or ↑ to jump · 1, 2, 3 to use items", W / 2, 170); }
   ctx.textAlign = "left";
 }
 

@@ -79,22 +79,27 @@ function hurtPlayer() {
   return false;
 }
 
-// Items on the ground bar. Tapping one uses it (and doesn't jump).
+// Items on the ground bar. Tapping one uses it (and doesn't jump). On a computer, keys 1, 2 and 3 work too.
 const ITEM_LIST = [["heal", "Health Potion", "#ff4f6a"], ["energy", "Energy Potion", "#3aa0ff"], ["cape", "Cape", "#ffd23a"]];
 function itemSlot(i) { return { x: 14 + i * 46, y: GROUND + 14, s: 40 }; }
 function tapItem(wx, wy) {
   if (phase !== "boss" || BOSS.out > 0) return false;
   for (let i = 0; i < 3; i++) {
-    const b = itemSlot(i), [key, label] = ITEM_LIST[i];
+    const b = itemSlot(i);
     if (wx < b.x || wx > b.x + b.s || wy < b.y || wy > b.y + b.s) continue;
-    if (!BOSS.items[key]) return true;         // already used: ignore the tap
-    BOSS.items[key] = false;
-    if (key === "heal") { BOSS.hearts = PLAYER_HEARTS; say("Health Potion! All hearts back."); }
-    if (key === "energy") { BOSS.energy = 1; say("Energy Potion! Full power!"); strike(); }
-    if (key === "cape") { BOSS.shield = true; say("Cape on! It blocks the next hit."); }
-    boing(); return true;
+    useItem(i); return true;                   // a tap on an item never jumps, even if it's already used
   }
   return false;
+}
+function useItem(i) {
+  if (phase !== "boss" || BOSS.out > 0) return;
+  const [key] = ITEM_LIST[i];
+  if (!BOSS.items[key]) return;                // already used this battle
+  BOSS.items[key] = false;
+  if (key === "heal") { BOSS.hearts = PLAYER_HEARTS; say("Health Potion! All hearts back."); }
+  if (key === "energy") { BOSS.energy = 1; say("Energy Potion! Full power!"); strike(); }
+  if (key === "cape") { BOSS.shield = true; say("Cape on! It blocks the next hit."); }
+  boing();
 }
 
 function drawBossHud() {
@@ -113,6 +118,7 @@ function drawBossHud() {
     if (key === "cape") { ctx.beginPath(); ctx.moveTo(b.x + 12, b.y + 8); ctx.lineTo(b.x + 28, b.y + 8); ctx.lineTo(b.x + 32, b.y + 32); ctx.lineTo(b.x + 8, b.y + 32); ctx.fillStyle = col; ctx.fill(); }
     else { ctx.fillStyle = "#c9d1d9"; ctx.fillRect(b.x + 16, b.y + 6, 8, 8); circ(b.x + 20, b.y + 24, 11, col); circ(b.x + 16, b.y + 21, 3, "rgba(255,255,255,.7)"); }
     ctx.globalAlpha = 1;
+    if (KEYBOARD) { ctx.font = "800 11px system-ui, sans-serif"; ctx.fillStyle = "#3a1d4a"; ctx.fillText(i + 1, b.x + 4, b.y + 12); }   // key number
   });
 }
 function drawHeart(x, y, col) {
