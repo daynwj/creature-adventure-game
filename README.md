@@ -7,6 +7,7 @@ A side-scrolling creature runner for the iPad, designed by a young game designer
 ## How to play
 
 - **Pick a creature:** Fire, Water, Grass, Electric, Dragon, or Steel. Each one runs through its own world. Give it a name, or keep the type.
+- **New here?** Tap **❓ How to play** on the menu for the controls and the rules.
 - **Pick a mode** (tap the little "i" to see what each one is):
   - **Adventure:** 3 worlds, each with 4 levels and a boss. Land on the minions to free the captured friends (their homes are your checkpoints). Beat the boss to Power Up your creature into its next stage.
   - **Zen:** relaxed, endless running with calm music. No way to lose. Try to beat your best distance.
