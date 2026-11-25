@@ -11,6 +11,7 @@ A side-scrolling creature runner for the iPad, designed by a young game designer
   - **Adventure:** 3 worlds, each with 4 levels and a boss. Land on the minions to free the captured friends (their homes are your checkpoints). Beat the boss to Power Up your creature into its next stage.
   - **Zen:** relaxed, endless running with calm music. No way to lose. Try to beat your best distance.
 - **Tap** to jump. **Tap again in the air** to double jump. In a boss battle, tap an item on the ground bar to use it.
+- **On a computer:** press **Space** or the **Up arrow** to jump, and **1**, **2** or **3** to use an item in a boss battle.
 - **Code: on/off** shows or hides the code monitor, a screen in the sky that lights up the line of code running when you jump, rescue, or hit the boss. (It reads the game's files from the website, so it only shows code on GitHub Pages, not when you open the file from a folder.)
 
 Best on an iPad in landscape. Add it to your Home Screen so Safari keeps your saved progress.
