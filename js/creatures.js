@@ -6,6 +6,9 @@
 function circ(x, y, r, c) { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fillStyle = c; ctx.fill(); }
 function ell(x, y, rx, ry, rot, c) { ctx.beginPath(); ctx.ellipse(x, y, rx, ry, rot, 0, 7); ctx.fillStyle = c; ctx.fill(); }
 function tri(a, b, c, d, e, f, col) { ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.lineTo(e, f); ctx.closePath(); ctx.fillStyle = col; ctx.fill(); }
+// INK is the dark outline around every creature, like cartoon line art. It keeps light creatures
+// (Steel, Electric, pale wings) visible on light skies and on the picker buttons.
+const INK = "#2a1a33";
 function outlined(x, y, r, fill, line) { circ(x, y, r, fill); ctx.lineWidth = 2; ctx.strokeStyle = line; ctx.stroke(); }
 
 // A bat wing, drawn from the shoulder (0, 0) out to the left. The bottom edge curves in between
@@ -19,6 +22,7 @@ function batWing(x, y, rot, fill, line, k = 1.3) {   // k = wing size
   ctx.quadraticCurveTo(-21, -10, -16, 0);           // scallop 3
   ctx.quadraticCurveTo(-8, -4, 0, 4);               // back to the shoulder
   ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.2 / k; ctx.lineJoin = "round"; ctx.stroke();   // outline the whole wing
   ctx.strokeStyle = line; ctx.lineWidth = 1.8 / k; ctx.lineCap = "round"; ctx.beginPath();
   for (const [fx, fy] of [[-46, -38], [-42, -16], [-29, -7], [-16, 0]]) { ctx.moveTo(0, 0); ctx.lineTo(fx, fy); }   // finger bones
   ctx.stroke(); ctx.restore();
@@ -70,17 +74,19 @@ function drawBody(T, t, air, step, stage = 1) {
   batWing(-2, -24, 0.45 + flap * 0.8, T.dark, T.fin, wing * 0.77);   // far wing: behind, higher, darker
   batWing(-12, -14, 0.12 + flap, T.fin, T.dark, wing);               // near wing: spread out behind
   if (stage >= 2) {                                                   // tail, with the belly mark on the tip
-    ctx.strokeStyle = T.body; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.beginPath();
-    ctx.moveTo(-22, 24); ctx.quadraticCurveTo(-44, 30, -50, 12); ctx.stroke();
+    ctx.lineCap = "round";
+    for (const [col, w] of [[INK, 13], [T.body, 9]]) {               // dark edge first, then the tail on top
+      ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(-22, 24); ctx.quadraticCurveTo(-44, 30, -50, 12); ctx.stroke();
+    }
     drawMark(T, -51, 6, stage === 3 ? 0.55 : 0.42);
   }
   tri(-24, -20, -34, -40, -12, -32, T.dark);                         // back spikes
   tri(-8, -34, -10, -56, 6, -38, T.dark);
   if (stage >= 2) tri(-30, -4, -46, -16, -26, -18, T.dark);          // extra spike
-  outlined(-18 - swing, 12, 6.5, T.body, T.dark);                    // far hand (behind the body)
-  outlined(-10 + swing, 36, 8.5, T.body, T.dark);                    // feet: circles
-  outlined(12 - swing, 36, 8.5, T.body, T.dark);
-  ell(-12, -36, 7, 13, -0.3, T.body); ell(14, -36, 7, 13, 0.3, T.body);   // ears
+  outlined(-18 - swing, 12, 6.5, T.body, INK);                       // far hand (behind the body)
+  outlined(-10 + swing, 36, 8.5, T.body, INK);                       // feet: circles
+  outlined(12 - swing, 36, 8.5, T.body, INK);
+  for (const [ex, rot] of [[-12, -0.3], [14, 0.3]]) { ell(ex, -36, 7, 13, rot, T.body); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.stroke(); }   // ears
   if (stage === 2) { tri(18, -32, 26, -50, 26, -30, T.dark); tri(6, -36, 10, -52, 14, -34, T.dark); }   // little horns
   if (stage === 3) {                                                  // long curved horns
     ctx.fillStyle = T.dark;
@@ -89,12 +95,12 @@ function drawBody(T, t, air, step, stage = 1) {
       ctx.quadraticCurveTo(hx + 6 * lean, -52, hx + 6, -32); ctx.closePath(); ctx.fill();
     }
   }
-  ell(0, 0, 30, 38, 0, T.body);                                      // blob body: an oval, taller than wide
+  ell(0, 0, 30, 38, 0, T.body); ctx.strokeStyle = INK; ctx.lineWidth = 2.5; ctx.stroke();   // blob body: an oval, taller than wide
   ell(6, 14, 17, 17, 0, "rgba(255,255,255,.45)");                    // belly
   if (stage === 3) { ctx.beginPath(); ctx.arc(6, 16, 13, 0, 7); ctx.strokeStyle = T.dark; ctx.lineWidth = 2; ctx.stroke(); }   // ring
   drawMark(T, 6, 16, 0.75);                                          // belly mark, middle of the belly
   if (stage === 3) { ell(16, -28, 4, 5, 0, T.fin); ctx.strokeStyle = T.dark; ctx.lineWidth = 1.5; ctx.stroke(); }   // forehead gem
-  outlined(27 + swing * 0.6, 10, 7, T.body, T.dark);                 // near hand: a circle
+  outlined(27 + swing * 0.6, 10, 7, T.body, INK);                    // near hand: a circle
   circ(10, -16, 5, "#1a1a22"); circ(22, -16, 5, "#1a1a22"); circ(11.5, -17.5, 1.7, "#fff"); circ(23.5, -17.5, 1.7, "#fff");
   ctx.strokeStyle = "#1a1a22"; ctx.lineWidth = 2.5; ctx.lineCap = "round";
   ctx.beginPath(); ctx.arc(16, -7, 6, 0.2, Math.PI - 0.2); ctx.stroke();   // smile

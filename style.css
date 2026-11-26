@@ -37,10 +37,11 @@ button { touch-action: manipulation; cursor: pointer; }
 #modeInfo li { margin: 3px 0; }
 #modeInfo em { display: block; margin-top: 6px; font-style: normal; font-weight: 700; color: #c4410a; }
 #picker { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.pick { width: 84px; padding: 6px 4px 8px; border-radius: 16px; border: 3px solid transparent; background: rgba(255,255,255,.85);
+/* a warm, slightly darker tile, so pale wings and the grey Steel creature still stand out */
+.pick { width: 84px; padding: 6px 4px 8px; border-radius: 16px; border: 3px solid transparent; background: #e9ddd0;
         display: flex; flex-direction: column; align-items: center; gap: 2px; font: 700 14px system-ui, sans-serif; color: #3a1d4a; }
 .pick span { max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pick[aria-pressed="true"] { border-color: #ffd23a; background: #fff; box-shadow: 0 0 0 3px rgba(255,210,58,.45); }
+.pick[aria-pressed="true"] { border-color: #ffd23a; background: #fff6e8; box-shadow: 0 0 0 3px rgba(255,210,58,.45); }
 .pick canvas { width: 64px; height: 72px; }
 
 /* the naming box */
