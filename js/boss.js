@@ -1,20 +1,23 @@
-/* ===== BOSS: level 5 of every world, then Power Up =====
+/* ===== BOSS: level 5 of every world. Beat it to unlock a Power Up (it happens back at camp) =====
    The boss sends slow attacks: low ones roll along the ground (jump them), high ones float (run under them).
    Grab glowing orbs to fill the energy bar. When it's full, your creature uses its move on its own,
    aimed at the boss's glowing weak spot. Break all 3 weak spots and the boss gets dizzy and floats away,
    dropping a Power Up. Lose all your hearts, and the boss battle starts over (and so does the boss).
-   Items from rescued friends: tap them on the ground bar. Each works once per boss battle. */
+   Items from rescued friends: tap them on the ground bar. Each works once per boss battle.
+   Zen has a practice boss too (the 👾 button): same battle, nothing to lose, no Power Up. */
 
 let BOSS = null;
-let PU = null;    // the Power Up moment: { t, from, to }
+let PU = null;    // the Power Up moment at camp: { t, from, to } (see camp.js)
 
-function startBoss() {
-  const pr = progressOf(cur());
-  resetRun(); mode = "adventure"; phase = "boss";
-  BOSS = { world: pr.world, wp: 0, hits: 0, energy: 0, hearts: PLAYER_HEARTS, shield: false,
+// practice = the Zen practice boss: the boss of the world you're on, with nothing to lose.
+function startBoss(practice = false) {
+  const pr = progressOf(cur()), world = practice && pr.done ? 3 : pr.world;
+  resetRun(); mode = practice ? "zen" : "adventure"; phase = "boss";
+  BOSS = { world, practice, wp: 0, hits: 0, energy: 0, hearts: PLAYER_HEARTS, shield: false,
            items: { heal: true, energy: true, cape: true }, attackIn: 2.4, orbIn: 1.2, out: 0, dropped: false, flash: 0 };
-  ADV = { world: pr.world, level: 5 };
-  say("The boss! Jump the low attacks, run under the high ones.");
+  ADV = { world, level: 5 };
+  $("bossToggle").hidden = !practice; $("bossToggle").textContent = "👾 Practice boss: on"; $("bossToggle").setAttribute("aria-pressed", "true");
+  say(practice ? "Practice boss! Nothing to lose. Try it out." : "The boss! Jump the low attacks, run under the high ones.");
   playMusic(MUSIC.boss);
 }
 
@@ -74,7 +77,7 @@ function hurtPlayer() {
   P.hurt = 1.2; P.stumble = 0.4;
   if (BOSS.shield) { BOSS.shield = false; say("Your cape blocked it!"); return false; }
   BOSS.hearts--; beep(300, 120, 0.3, 0.18); show("hit", "OUCH!"); // @hit
-  if (BOSS.hearts <= 0) { startBoss(); say("The boss got you this time. Let's try again!"); return true; }
+  if (BOSS.hearts <= 0) { startBoss(BOSS.practice); say("The boss got you this time. Let's try again!"); return true; }
   say(BOSS.hearts === 1 ? "Careful! One heart left. Got a potion?" : "Ouch! Watch for the next one.");
   return false;
 }
@@ -157,7 +160,7 @@ function drawBoss() {
   // boss health, just under the boss: one block per hit still needed
   const total = 3 * BOSS_HITS, left = BOSS.out > 0 ? 0 : total - (BOSS.wp * BOSS_HITS + BOSS.hits), bw = 120, bx = W - 200, by = GROUND - 12;
   if (BOSS.out > 0) return;
-  ctx.font = "800 12px system-ui, sans-serif"; hudText("BOSS", bx - 40, by + 9);
+  ctx.font = "800 12px system-ui, sans-serif"; ctx.textAlign = "right"; hudText(BOSS.practice ? "PRACTICE BOSS" : "BOSS", bx - 6, by + 9); ctx.textAlign = "left";
   for (let i = 0; i < total; i++) { ctx.beginPath(); ctx.roundRect(bx + i * (bw / total), by, bw / total - 3, 8, 3); ctx.fillStyle = i < left ? "#ff4f9a" : "rgba(255,255,255,.25)"; ctx.fill(); }
 }
 
@@ -181,31 +184,27 @@ function drawStrike(o, T) {
   drawMark(T, o.x, o.y, o.r / 16);
 }
 
-/* ===== POWER UP: the boss drops it, your creature grows into its next stage ===== */
-function startPowerUp() {
-  const pr = progressOf(cur());
-  phase = "powerup"; things = [];
-  PU = { t: 0, from: STAGE, to: Math.min(3, STAGE + 1), last: pr.world >= 3 };
-  try { const v = new SpeechSynthesisUtterance("Power up!"); v.pitch = 1.4; v.rate = 1.05; speechSynthesis.speak(v); } catch (e) {}
-  beep(262, 1046, 1.2, 0.18);
-}
-function updatePowerUp(dt) {
-  PU.t += dt;
-  if (PU.t > 1.5) STAGE = PU.to;               // halfway through the flashing, it changes
-  if (PU.t < 3.2) return;
-  const T = cur(), pr = progressOf(T), name = nameOf(T);
-  pr.stage = Math.max(pr.stage, PU.to);
-  if (PU.last) {                               // that was the final boss
-    pr.done = true; pr.world = 1; pr.level = 1; saveProgress(T, pr); phase = "clear";
-    card = { title: "You beat the adventure!", lines: [name + " is a champion!", "Play again any time – " + name + " stays Powered Up."], hint: "Tap to go back to the menu", next: showMenu };
-  } else {
-    pr.world++; pr.level = 1; saveProgress(T, pr); phase = "clear";
-    card = { title: name + " Powered Up!", lines: ["New move: " + T.moves[PU.to - 1] + "!", "Next up: World " + pr.world + "."], hint: "Tap to keep going", next: startLevel };
+/* ===== BOSS BEATEN: grab what it drops =====
+   In Adventure, that unlocks a Power Up: you watch it happen back at camp (camp.js).
+   The practice boss just sends you back to your Zen run. */
+function bossBeaten() {
+  const T = cur(), name = nameOf(T);
+  things = []; phase = "clear"; beep(523, 1046, 0.6, 0.15);
+  if (BOSS.practice) {
+    card = { title: "Practice boss beaten!", lines: ["Nice work, " + name + "!", "You're ready for the real one."], hint: "Tap to keep running", next: startZen };
+    return;
   }
-}
-function drawPowerUp() {
-  if (!PU || phase !== "powerup") return;
-  const a = PU.t < 1.5 ? (Math.sin(PU.t * 20) > 0 ? 0.6 : 0.1) : Math.max(0, 0.6 - (PU.t - 1.5));
-  ctx.fillStyle = "rgba(255,255,255," + a + ")"; ctx.fillRect(0, -OY, W, H + OY);
-  ctx.textAlign = "center"; ctx.font = "900 54px system-ui, sans-serif"; hudText("POWER UP!", W / 2, 120); ctx.textAlign = "left";
+  const pr = progressOf(T), beat = pr.world;
+  spendEnergy(T);
+  if (beat >= 3) {                             // that was the final boss
+    pr.done = true; pr.world = 1; pr.level = 1; saveProgress(T, pr);
+    card = { title: "You beat the adventure!", lines: [name + " is a champion!", "Play again any time – " + name + " stays Powered Up."], hint: "Tap to go to camp", next: enterCamp };
+    return;
+  }
+  pr.world++; pr.level = 1;
+  if (pr.stage < 3) pr.pending = pr.stage + 1;  // a Power Up, waiting at camp
+  saveProgress(T, pr);
+  card = pr.pending
+    ? { title: "Power Up unlocked!", lines: ["You beat the World " + beat + " boss!", "Head to camp to watch " + name + " Power Up."], hint: "Tap to go to camp", next: enterCamp }
+    : { title: "Boss beaten!", lines: ["You beat the World " + beat + " boss!", "Next up: World " + pr.world + "."], hint: "Tap to go to camp", next: enterCamp };
 }

@@ -3,7 +3,8 @@
    Every world has 4 levels and then a boss (level 5). Every level has 3 captured friends:
    land on a minion to free its friend, and that friend's home becomes your checkpoint.
    Miss a friend, and you go back to the last home. Reach the flag to clear the level.
-   Levels are the same every time you play them, so you can learn them. Uses game.js for the shared stuff. */
+   Levels are the same every time you play them, so you can learn them. Each level you finish uses 1 energy,
+   and then you go to camp (camp.js). Uses game.js for the shared stuff. */
 
 // Saved progress, one per creature type: which world and level you're on, and which stage you've reached.
 function progressOf(T) {
@@ -39,6 +40,7 @@ function startLevel() {
   const pr = progressOf(cur());
   resetRun(); mode = "adventure"; phase = "run";
   const len = (FAST ? 40 : LEVEL_METERS) * 50;                             // 50 units = 1 metre on screen
+  $("bossToggle").hidden = true;
   ADV = { world: pr.world, level: pr.level, len, course: buildCourse(pr.world, pr.level, len), next: 0, saved: 0, checkpoint: 0 };
   say("World " + pr.world + ", Level " + pr.level + ". Save all 3 friends!");
   playMusic(MUSIC[cur().type]);
@@ -81,11 +83,13 @@ function backToCheckpoint() {
 
 function levelClear() {
   const T = cur(), pr = progressOf(T), done = ADV.level;
-  pr.level = done + 1; saveProgress(T, pr);
+  pr.level = done + 1; saveProgress(T, pr); spendEnergy(T);
   phase = "clear"; beep(523, 1046, 0.5, 0.15);
+  const left = energyOf(T).e;
   card = { title: "Level " + done + " clear!", lines: ["★ ★ ★  You saved all 3 friends!",
-    done <= 3 ? "You got " + an(GIFTS[done - 1]) + " for the boss battle." : "You got the key to the boss's lair!"],
-    hint: done === 4 ? "Tap to face the boss!" : "Tap to keep going", next: done === 4 ? startBoss : startLevel };
+    done <= 3 ? "You got " + an(GIFTS[done - 1]) + " for the boss battle." : "You got the key to the boss's lair!",
+    "Energy left: " + "⚡".repeat(left) + (left ? "" : "none – time to rest!")],
+    hint: "Tap to go to camp", next: enterCamp };
 }
 
 // The adventure bar on the ground: World and Level, five dots (the fifth is the boss), then the progress bar.

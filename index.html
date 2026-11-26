@@ -31,6 +31,10 @@
       <button id="zenBtn" class="modeBtn zen">Zen</button>
       <button class="info" data-mode="zen" aria-label="What happens in Zen mode?">i</button>
     </div>
+    <div class="mode" data-mode="camp" id="campMode" hidden>
+      <button id="campBtn" class="modeBtn camp">⛺ Camp</button>
+      <button class="info" data-mode="camp" aria-label="What is the Camp?">i</button>
+    </div>
     <button id="nameBtn" class="nameBtn">✏️ Name</button>
     <button id="howBtn" class="nameBtn" aria-controls="modeInfo">❓ How to play</button>
   </div>
@@ -42,7 +46,28 @@
   <div class="row"><button id="nameSave">Save</button><button id="nameReset">Just use the type</button><button id="nameCancel">Cancel</button></div>
 </div>
 
-<button id="menuBtn" hidden>☰ Menu</button>
+<!-- Camp: what to do next -->
+<div id="campBar" hidden>
+  <p id="campPrompt" aria-live="polite"><span id="campBolts"></span> <span id="campSay"></span></p>
+  <button id="campNext" class="modeBtn adv">▶ Next level</button>
+  <button id="campMatch" class="modeBtn zen">🃏 Matching game</button>
+  <button id="campMenu" class="nameBtn">☰ Main menu</button>
+</div>
+<!-- The matching game at camp: find the pairs, no timer, can't lose -->
+<div id="match" hidden role="dialog" aria-labelledby="matchTitle">
+  <div id="matchHead">
+    <span id="matchTitle">Find the pairs!</span>
+    <button id="matchGo" class="modeBtn adv" hidden>▶ Back to the adventure</button>
+    <button id="matchAgain" class="nameBtn" hidden>🃏 Play again</button>
+    <button id="matchBack" class="nameBtn">⛺ Back to camp</button>
+  </div>
+  <div id="matchGrid"></div>
+</div>
+
+<div id="topBar">
+  <button id="menuBtn" hidden>☰ Menu</button>
+  <button id="bossToggle" hidden aria-pressed="false">👾 Practice boss: off</button>
+</div>
 <a id="storyLink" href="story.html">How we made this</a>
 <button id="musicBtn" aria-pressed="true">♪ Music: on</button>
 <button id="codeBtn" aria-pressed="true">Code: on</button>
@@ -53,7 +78,8 @@
 <script src="js/trainer.js"></script>   <!-- the trainer's outfit for each world -->
 <script src="js/worlds.js"></script>    <!-- each type's world and its obstacles -->
 <script src="js/adventure.js"></script> <!-- levels, rescues, checkpoints -->
-<script src="js/boss.js"></script>      <!-- boss battles and Power Up -->
+<script src="js/boss.js"></script>      <!-- boss battles -->
+<script src="js/camp.js"></script>      <!-- camp: energy, the matching game, and Power Up -->
 <script src="js/game.js"></script>      <!-- everything that runs: menu, input, movement, sound, the loop -->
 </body>
 </html>

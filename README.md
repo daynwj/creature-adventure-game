@@ -9,8 +9,10 @@ A side-scrolling creature runner for the iPad, designed by a young game designer
 - **Pick a creature:** Fire, Water, Grass, Electric, Dragon, or Steel. Each one runs through its own world. Give it a name, or keep the type.
 - **New here?** Tap **❓ How to play** on the menu for the controls and the rules.
 - **Pick a mode** (tap the little "i" to see what each one is):
-  - **Adventure:** 3 worlds, each with 4 levels and a boss. Land on the minions to free the captured friends (their homes are your checkpoints). Beat the boss to Power Up your creature into its next stage.
-  - **Zen:** relaxed, endless running with calm music. No way to lose. Try to beat your best distance.
+  - **Adventure:** 3 worlds, each with 4 levels and a boss. Land on the minions to free the captured friends (their homes are your checkpoints). After every level you rest at camp. Beat the boss to unlock a Power Up, then tap your creature at camp to watch it grow into its next stage.
+  - **Zen:** relaxed, endless running with calm music. No way to lose. Try to beat your best distance. Tap **👾 Practice boss** at the top to practise a boss battle with nothing to lose.
+  - **Camp:** the trainer, the other creatures (by the campfire, at the matching table, and in the workout corner), and the matching game. Shows up on the menu after your first visit.
+- **Energy:** each creature has 3 ⚡. Each level you finish uses 1. One comes back every 2 minutes, or finish the matching game (6 pairs, no timer) to fill them all.
 - **Tap** to jump. **Tap again in the air** to double jump. In a boss battle, tap an item on the ground bar to use it.
 - **On a computer:** press **Space** or the **Up arrow** to jump, and **1**, **2** or **3** to use an item in a boss battle.
 - **Code: on/off** shows or hides the code monitor, a screen in the sky that lights up the line of code running when you jump, rescue, or hit the boss. (It reads the game's files from the website, so it only shows code on GitHub Pages, not when you open the file from a folder.)
@@ -28,19 +30,20 @@ Best on an iPad in landscape. Add it to your Home Screen so Safari keeps your sa
 | `js/trainer.js` | The trainer's outfit for each world |
 | `js/worlds.js` | The six worlds and their obstacles |
 | `js/adventure.js` | Levels, rescues, checkpoints, and the level-clear cards |
-| `js/boss.js` | Boss battles, items, and Power Up |
+| `js/boss.js` | Boss battles, items, and the practice boss |
+| `js/camp.js` | The camp: energy, the matching game, and watching your creature Power Up |
 | `js/game.js` | Everything else that runs: the menu, naming, Zen, input, movement, sound, the code monitor, and the game loop |
 | `story.html` | How we made it: the design story |
 | `story/` | Pictures for the story page |
 | `icons/` | The browser tab icon and the Home Screen app icon |
 | `manifest.webmanifest` | Tells phones the game's name, icon, and to open full screen |
-| `audio/` | Ten music tracks: one for each world, one for bosses, one for Zen |
+| `audio/` | Ten music tracks: one for each world, one for bosses, one for Zen and the camp |
 
 **Testing tip:** add `?fast` to the end of the address and every level is only 40 m long.
 
 ## Ideas for later
 
-A beat-your-best relay mode (tired creatures rest at the care center while the next one runs), a practice-boss switch for Zen, accessories with special powers, the Camp matching game, the Gym, and a choice of trainer.
+A beat-your-best relay mode (tired creatures rest at camp while the next one runs), a choice of trainer, a real Gym (the camp has a workout corner for now), and, as its own project, a 3D game.
 
 ## Credits
 

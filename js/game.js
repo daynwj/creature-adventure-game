@@ -1,5 +1,5 @@
 /* ===== GAME: everything that runs =====
-   Loaded last, after knobs.js, creatures.js, trainer.js, worlds.js, adventure.js and boss.js. */
+   Loaded last, after knobs.js, creatures.js, trainer.js, worlds.js, adventure.js, boss.js and camp.js. */
 
 /* ===== 1. SETUP: canvas size and saved data ===== */
 // The game world is always 400 units tall. We scale it to fit the screen,
@@ -27,8 +27,8 @@ const KEYBOARD = matchMedia("(hover: hover) and (pointer: fine)").matches;
 /* ===== 2. GAME STATE ===== */
 const P = { x: 150, y: GROUND, vy: 0, jumps: 0, stumble: 0, hurt: 0, t: 0 };   // the creature
 let things = [], dist = 0, stars = 0, berries = 0, spawnIn = 1.5, nextTip = 8;
-let mode = "menu";        // "menu", "zen" or "adventure"
-let phase = "";           // in adventure: "run" (a level), "boss", "clear" (a card to tap past), "powerup"
+let mode = "menu";        // "menu", "zen", "adventure" or "camp"
+let phase = "";           // "run" (a level), "boss", "clear" (a card to tap past), "powerup" (at camp)
 let msg = "", msgT = 0, banner = "", bannerT = 0, card = null, last = 0;
 let typeIdx = Math.max(0, TYPES.findIndex(t => t.type === load("type", "Fire")));
 let STAGE = 1;            // the creature's Power Up stage: 1, 2 or 3
@@ -151,18 +151,23 @@ function buildPicker() {
 }
 const MODE_INFO = {
   adventure: () => { const pr = progressOf(cur());
-    return "<b>Adventure</b>Run through 3 worlds. Each world has 4 levels and a boss. In every level, land on the minions to free 3 captured friends – their homes are your checkpoints. Beat the boss to Power Up " + nameOf(cur()) + "!" +
-      "<em>" + (pr.done ? "Adventure complete! Play it again any time." : "You're on World " + pr.world + " · " + (pr.level === 5 ? "the Boss" : "Level " + pr.level) + ".") + "</em>"; },
+    return "<b>Adventure</b>Run through 3 worlds. Each world has 4 levels and a boss. In every level, land on the minions to free 3 captured friends – their homes are your checkpoints. After each level, you rest at camp. Beat the boss to unlock a Power Up for " + nameOf(cur()) + "!" +
+      "<em>" + (pr.done ? "Adventure complete! Play it again any time." : "You're on World " + pr.world + " · " + (pr.level === 5 ? "the Boss" : "Level " + pr.level) + ".") +
+      " Energy: " + energyText(cur()) + "</em>"; },
+  camp: () => "<b>Camp</b>Where your creatures rest between levels. Play the matching game to fill your energy, say hi to the other creatures, and watch your creature Power Up after a boss." +
+    "<em>" + nameOf(cur()) + "'s energy: " + energyText(cur()) + "</em>",
   how: () => "<b>How to play</b>" +
     "<ul><li><strong>Jump:</strong> tap the screen" + (KEYBOARD ? ", or press Space or ↑" : "") + ". Tap again in the air to double jump.</li>" +
     "<li><strong>Rescue friends:</strong> land on the grumpy minions to pop the bubbles. Each friend's home is a checkpoint. Miss one, and you go back to the last home.</li>" +
     "<li><strong>Bumps</strong> just slow you down for a moment.</li>" +
     "<li><strong>Bosses:</strong> jump the low attacks, run under the high ones. Grab glowing orbs – when your energy is full, your creature attacks on its own.</li>" +
+    "<li><strong>Energy:</strong> each level uses one ⚡. You have 3. They come back on their own, one every " + Math.round(ENERGY_REFILL_SECONDS / 60) + " minutes – or play the matching game at camp to fill them right up.</li>" +
     "<li><strong>Items:</strong> in a boss battle, tap a potion or the cape on the ground bar" + (KEYBOARD ? " (or press 1, 2, 3)" : "") + ". Each works once per battle.</li>" +
     "<li><strong>Your progress saves</strong> on this device, so you can stop any time.</li></ul>",
-  zen: () => "<b>Zen</b>Run as long as you like, with calm music. Nothing can stop you – just practise jumping and collecting." +
+  zen: () => "<b>Zen</b>Run as long as you like, with calm music. Nothing can stop you – just practise jumping and collecting. Want to practise a boss? Tap 👾 at the top." +
     "<em>" + nameOf(cur()) + "'s best: " + (Number(load("zenBest." + cur().type, 0)) || 0) + " m</em>",
 };
+const energyText = T => { const en = energyOf(T); return "⚡".repeat(en.e) + (en.e < ENERGY_MAX ? " (next in " + clock(en.wait) + ")" : " (full)"); };
 let infoOpen = "", infoPinned = false;   // pinned = opened with a tap, so it stays until you tap again
 function showInfo(which) { infoOpen = which; $("modeInfo").hidden = !which; if (which) $("modeInfo").innerHTML = MODE_INFO[which](); }
 document.querySelectorAll(".info").forEach(b => b.addEventListener("click", () => {
@@ -176,8 +181,17 @@ document.querySelectorAll(".mode").forEach(m => {                    // on a com
   m.addEventListener("mouseenter", () => { if (!infoPinned) showInfo(m.dataset.mode); });
   m.addEventListener("mouseleave", () => { if (!infoPinned) showInfo(""); });
 });
-$("advBtn").addEventListener("click", () => { hideMenu(); const pr = progressOf(cur()); pr.level === 5 ? startBoss() : startLevel(); });
+// Adventure goes straight to the next level. Two exceptions go to camp first: no energy left,
+// or a Power Up waiting to happen.
+$("advBtn").addEventListener("click", () => {
+  const T = cur(), pr = progressOf(T);
+  if (pr.pending || energyOf(T).e < 1) { enterCamp(); return; }
+  hideMenu(); pr.level === 5 ? startBoss() : startLevel();
+});
 $("zenBtn").addEventListener("click", () => { hideMenu(); startZen(); });
+$("campBtn").addEventListener("click", enterCamp);
+// The practice boss in Zen: on starts a boss battle, off goes back to running.
+$("bossToggle").addEventListener("click", () => { if (BOSS && BOSS.practice) startZen(); else { saveZenBest(); startBoss(true); } });
 // Naming: one name per creature, saved on this device. Leave it empty to just use the type.
 $("nameBtn").addEventListener("click", () => {
   const T = cur(); $("nameLabel").textContent = "Name your " + T.type + " creature";
@@ -190,16 +204,25 @@ $("nameReset").addEventListener("click", () => { save("name." + cur().type, "");
 $("nameCancel").addEventListener("click", closeName);
 $("nameInput").addEventListener("keydown", e => { if (e.key === "Enter") $("nameSave").click(); });
 $("menuBtn").addEventListener("click", showMenu);
-function refreshMenu() { buildPicker(); $("nameBtn").textContent = "✏️ Name: " + nameOf(cur()); if (infoOpen) showInfo(infoOpen); }
+function refreshMenu() {
+  buildPicker(); $("nameBtn").textContent = "✏️ Name: " + nameOf(cur());
+  $("campMode").hidden = load("campSeen", "") !== "yes";   // the Camp button shows up once you've been to camp
+  if (infoOpen) showInfo(infoOpen);
+}
 function hideMenu() { $("menu").hidden = true; $("storyLink").hidden = true; $("menuBtn").hidden = false; infoPinned = false; showInfo(""); }
 function showMenu() {
-  if (mode === "zen") saveZenBest();
+  if (mode === "zen" && phase !== "boss") saveZenBest();
+  leaveCamp(); $("bossToggle").hidden = true;
   mode = "menu"; phase = ""; BOSS = null; ADV = null; PU = null; resetRun(); STAGE = progressOf(cur()).stage;
   $("menu").hidden = false; $("storyLink").hidden = false; $("menuBtn").hidden = true; playMusic(); refreshMenu();
 }
 
 /* ===== 3d. ZEN: endless, calm, no way to lose ===== */
-function startZen() { resetRun(); mode = "zen"; phase = "run"; say("Zen mode. Run as long as you like, " + nameOf(cur()) + "."); playMusic(MUSIC.zen); }
+function startZen() {
+  resetRun(); mode = "zen"; phase = "run"; BOSS = null; ADV = null; STAGE = progressOf(cur()).stage;
+  $("bossToggle").hidden = false; $("bossToggle").textContent = "👾 Practice boss: off"; $("bossToggle").setAttribute("aria-pressed", "false");
+  say("Zen mode. Run as long as you like, " + nameOf(cur()) + "."); playMusic(MUSIC.zen);
+}
 function saveZenBest() { const m = Math.floor(dist / 50), key = "zenBest." + cur().type; if (m > (Number(load(key, 0)) || 0)) save(key, m); }
 function zenSpawn(dt) {
   if ((spawnIn -= dt) > 0) return;
@@ -215,10 +238,10 @@ function tap(e) {
   if (mode === "menu") return;                                       // on the menu, use the buttons
   if (phase === "clear") { const next = card.next; card = null; next(); return; }
   if (phase === "powerup") return;
-  if (e && e.clientX !== undefined) {                                // a tap on an item (boss battle) uses it instead
-    const d = window.devicePixelRatio || 1, wx = e.clientX * d / scale, wy = e.clientY * d / scale - OY;
-    if (tapItem(wx, wy)) return;
-  }
+  const d = window.devicePixelRatio || 1, at = e && e.clientX !== undefined;   // where the tap landed, in world units
+  const wx = at ? e.clientX * d / scale : -1, wy = at ? e.clientY * d / scale - OY : -1;
+  if (mode === "camp") { if (at) campTap(wx, wy); return; }           // at camp, taps pick things (no jumping)
+  if (at && tapItem(wx, wy)) return;                                 // a tap on an item (boss battle) uses it instead
   if (P.jumps < 2) { P.vy = -JUMP * (P.jumps ? 0.85 : 1); P.jumps++; boing(); show("jump", P.jumps === 2 ? "DOUBLE JUMP!" : "JUMP!"); } // @jump
 }
 cv.addEventListener("pointerdown", e => { e.preventDefault(); tap(e); });
@@ -230,20 +253,21 @@ addEventListener("keydown", e => {
 
 /* ===== 5. UPDATE: everything that moves, once per frame ===== */
 function runSpeed() {
-  if (mode === "zen") return SPEED * 0.9;
   if (phase === "boss") return SPEED * 0.55;
+  if (mode === "zen") return SPEED * 0.9;
   return SPEED * (1 + 0.08 * ((ADV ? ADV.world : 1) - 1));        // each world is a little faster
 }
 function update(dt) { // @loop
   P.t += dt; msgT -= dt; nextTip -= dt; bannerT -= dt; P.hurt = Math.max(0, P.hurt - dt);
   if (phase === "clear") return;                                     // waiting for a tap
   if (phase === "powerup") { updatePowerUp(dt); return; }
+  if (mode === "camp") return;                                       // nobody runs at camp
   P.stumble = Math.max(0, P.stumble - dt);
   const speed = runSpeed() * (P.stumble > 0 ? 0.5 : 1);             // a bump only slows you down
   dist += speed * dt;
   P.vy += GRAVITY * dt; P.y += P.vy * dt;                           // gravity pulls it back to the ground
   if (P.y >= GROUND) { P.y = GROUND; P.vy = 0; P.jumps = 0; }
-  if (mode === "zen") zenSpawn(dt); else if (phase === "run") advSpawn(); else if (phase === "boss") bossUpdate(dt);
+  if (phase === "boss") bossUpdate(dt); else if (mode === "zen") zenSpawn(dt); else if (phase === "run") advSpawn();
   if (phase !== "run" && phase !== "boss") return;                  // the level just ended
 
   const cx = P.x, cy = P.y - bodyH(), r = bodyR();                  // centre and size of the creature's body
@@ -260,14 +284,14 @@ function update(dt) { // @loop
       if (o.kind === "shot") { o.gone = true; if (hurtPlayer()) break; continue; }
       o.got = true;
       if (o.kind === "orb") charge();
-      else if (o.kind === "powerorb") { startPowerUp(); break; }
+      else if (o.kind === "powerorb") { bossBeaten(); break; }
       else if (o.kind === "star") { stars++; beep(880, 1320, 0.2, 0.12); show("star", "STAR!"); } // @star
       else { berries++; savedBerries++; save("berries", savedBerries); beep(660, 990, 0.2, 0.12); show("berry", "BERRY!"); } // @berry
     }
   }
   things = things.filter(o => o.x > -120 && !o.gone && !(o.got && o.kind !== "tall" && o.kind !== "wide" && o.kind !== "minion"));
-  if (nextTip <= 0) { say(pick(mode === "zen" ? ZEN_TIPS : phase === "boss" ? BOSS_TIPS : ADV_TIPS)); nextTip = 10 + Math.random() * 6; }
-  if (mode === "zen" && Math.floor(dist / 50) % 50 === 0) saveZenBest();
+  if (nextTip <= 0) { say(pick(phase === "boss" ? BOSS_TIPS : mode === "zen" ? ZEN_TIPS : ADV_TIPS)); nextTip = 10 + Math.random() * 6; }
+  if (mode === "zen" && phase === "run" && Math.floor(dist / 50) % 50 === 0) saveZenBest();
 } // @loopend
 
 /* ===== 6. DRAW: pickups, the creature, the speech bubble, the score ===== */
@@ -306,7 +330,7 @@ function drawBubble() {
   // The trainer's words sit up top, under the score, so they never cover the creature (and it never covers them).
   if (msgT <= 0) return;
   ctx.font = "700 18px system-ui, sans-serif";
-  const w = ctx.measureText(msg).width + 28, bx = 20, by = -OY + 50;
+  const w = ctx.measureText(msg).width + 28, bx = 20, by = mode === "camp" ? campTop() + 8 : -OY + 50;
   ctx.beginPath(); ctx.roundRect(bx, by, w, 36, 18); ctx.moveTo(bx + 22, by + 34); ctx.lineTo(bx + 18, by + 48); ctx.lineTo(bx + 36, by + 34);
   ctx.fillStyle = "#fff"; ctx.fill(); ctx.fillStyle = "#12172a"; ctx.fillText(msg, bx + 14, by + 24);
 }
@@ -321,12 +345,12 @@ function drawHud() {
   ctx.textAlign = "right"; hudText(Math.floor(dist / 50) + " m", W - 20, y);
   ctx.font = "600 15px system-ui, sans-serif"; hudText("Berries saved: " + savedBerries, W - 20, y + 24);
   ctx.textAlign = "left";
-  if (mode === "zen") {
+  if (phase === "boss" && BOSS) drawBossHud();
+  else if (mode === "zen") {
     ctx.textAlign = "center"; ctx.font = "800 15px system-ui, sans-serif";
     hudText("Zen · " + nameOf(cur()) + " · Best: " + Math.max(Number(load("zenBest." + cur().type, 0)) || 0, Math.floor(dist / 50)) + " m", W / 2, GROUND + 28);
     ctx.textAlign = "left";
   } else if (phase === "run" && ADV) drawAdventureHud();
-  else if (phase === "boss" && BOSS) drawBossHud();
   if (bannerT > 0) { ctx.textAlign = "center"; ctx.font = "900 34px system-ui, sans-serif"; hudText(banner, 200, GROUND - 190); ctx.textAlign = "left"; }
 }
 function drawCard() {    // "Level clear!" and friends: a card in the middle, tap to go on
@@ -345,7 +369,7 @@ function drawStart() {
   ctx.textAlign = "center"; ctx.fillStyle = "#fff";
   ctx.font = "800 44px system-ui, sans-serif"; ctx.fillText("Creature Adventure", W / 2, 84);
   ctx.font = "700 20px system-ui, sans-serif"; ctx.fillText("Pick a creature, then pick a mode", W / 2, 120);
-  ctx.font = "600 15px system-ui, sans-serif"; ctx.fillText(nameOf(cur()) + " · " + cur().world + " · Stage " + STAGE, W / 2, 146);
+  ctx.font = "600 15px system-ui, sans-serif"; ctx.fillText(nameOf(cur()) + " · " + cur().world + " · Stage " + STAGE + " · Energy " + "⚡".repeat(energyOf(cur()).e), W / 2, 146);
   if (KEYBOARD) { ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.fillText("On a computer: Space or ↑ to jump · 1, 2, 3 to use items", W / 2, 170); }
   ctx.textAlign = "left";
 }
@@ -356,11 +380,16 @@ function frame(now) {
   if (mode !== "menu") update(dt); else P.t += dt;                  // on the menu, the creature still flaps
   ctx.setTransform(scale, 0, 0, scale, 0, OY * scale);              // draw in world units
   const T = cur();
-  drawWorld(T); if (mode !== "menu" && phase !== "powerup" && phase !== "clear") drawMonitor(dt);
+  drawWorld(T);
+  if (mode === "camp") {                                            // camp: its own scene (camp.js)
+    drawCamp(); drawBubble(); drawPowerUp(); drawCard(); refreshCamp();
+    requestAnimationFrame(frame); return;
+  }
+  if (mode !== "menu" && phase !== "clear") drawMonitor(dt);
   things.forEach(o => { if (o.kind !== "strike") drawThing(o); });
-  if (phase === "boss" || (phase === "powerup" && BOSS)) drawBoss();
+  if (phase === "boss") drawBoss();
   things.forEach(o => { if (o.kind === "strike") drawThing(o); });
-  drawTrainer(T); drawCreature(); drawBubble(); drawHud(); drawPowerUp();
+  drawTrainer(T); drawCreature(); drawBubble(); drawHud();
   if (mode === "menu") drawStart(); else drawCard();
   requestAnimationFrame(frame);
 }

@@ -32,11 +32,16 @@ const BOSS_HITS = 2;          // strikes needed to break each of the boss's 3 we
 const ORBS_TO_CHARGE = 2;     // glowing orbs to fill the energy bar (then your creature attacks on its own)
 const GIFTS = ["Health Potion", "Energy Potion", "Cape"];   // what a rescued friend gives you in levels 1, 2, 3
 
+// Camp: energy and the matching game
+const ENERGY_MAX = 3;              // energy per creature. Each level you finish uses 1 (so 3 levels, then rest)
+const ENERGY_REFILL_SECONDS = 120; // how long one energy takes to come back on its own
+const MATCH_PAIRS = 6;             // pairs in the matching game (one per creature type, so 6 at most)
+
 // Music: which track plays where (files in the audio folder)
 const MUSIC = {
   Fire: "04-silver-wing", Water: "02-moonlit-path", Grass: "01-morning-trail",
   Electric: "03-crystal-cave", Dragon: "06-glow-forest", Steel: "09-hot-springs",
-  boss: "10-final-stand", zen: "05-campfire",
+  boss: "10-final-stand", zen: "05-campfire", camp: "05-campfire",
 };
 
 // What the trainer says
@@ -46,4 +51,5 @@ const ZEN_TIPS = ["Nice and easy.", "Take your time.", "Just keep running.", "Yo
 const ADV_TIPS = ["Land on the minions to free their friends!", "Every friend you save is a checkpoint!", "You've got this!"];
 const BOSS_TIPS = ["Jump the low ones! Run under the high ones!", "Grab the glowing orbs to charge up!", "Tap a potion if you need one!"];
 const OOPS = ["Oops! Shake it off!", "Bump! Try tapping a bit earlier.", "No problem. Keep running!"];
+const CAMP_HELLO = ["Welcome back to camp!", "Nice run! Rest up.", "Look who's back!", "Everyone's here!"];
 const SAVED = ["You saved a friend!", "Free! That's their home – your new checkpoint.", "Rescued! Nice landing!"];
